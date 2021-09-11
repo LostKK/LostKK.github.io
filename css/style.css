@@ -68,6 +68,7 @@ body {
   background-color: var(--color-background);
   background-repeat: no-repeat;
   background-attachment: fixed;
+  background-size: cover;
 }
 body a {
   color: var(--color-text);
@@ -1111,7 +1112,7 @@ body input {
 }
 .preview .preview-image {
   z-index: 40;
-  height: 90vh;
+  height: 100vh;
   width: 100%;
   background-image: var(--background-image);
   background-repeat: no-repeat;
