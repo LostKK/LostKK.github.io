@@ -263,6 +263,33 @@ img{display:block;width:100%}
   text-align:center;padding:2rem;line-height:1.7;
 }
 
+/* ===== Photo Lightbox ===== */
+.lightbox-overlay{
+  position:fixed;inset:0;z-index:999;
+  background:rgba(0,0,0,.88);
+  display:flex;align-items:center;justify-content:center;
+  opacity:0;visibility:hidden;
+  transition:opacity .35s ease,visibility .35s ease;
+  cursor:pointer;
+}
+.lightbox-overlay.active{opacity:1;visibility:visible}
+.lightbox-overlay img{
+  max-width:90vw;max-height:85vh;
+  object-fit:contain;border-radius:6px;
+  box-shadow:0 4px 60px rgba(0,0,0,.4);
+  transform:scale(.85);
+  transition:transform .4s cubic-bezier(.25,.1,.25,1.4);
+  cursor:default;
+}
+.lightbox-overlay.active img{transform:scale(1)}
+.lightbox-close{
+  position:absolute;top:2rem;right:2.5rem;
+  font-size:2rem;color:rgba(255,255,255,.7);
+  cursor:pointer;transition:color .3s;
+  line-height:1;user-select:none;
+}
+.lightbox-close:hover{color:#fff}
+
 /* ===== About ===== */
 .about-section{
   text-align:center;padding:10rem 2rem;
@@ -358,7 +385,7 @@ img{display:block;width:100%}
   <p class="section-desc">Virgo，黄道十二宫的第六宫。她是手持麦穗的正义女神，在夜空中静静守望。</p>
   <div class="constellation-wrap" id="constWrap">
     <canvas id="constCanvas"></canvas>
-    <p class="const-hint" id="constHint">✨ 滑动鼠标，探索星空</p>
+    <p class="const-hint" id="constHint">✨ 点击星星，逐一点亮</p>
   </div>
 </section>
 
@@ -403,6 +430,12 @@ img{display:block;width:100%}
     </div>
   </div>
 </section>
+
+<!-- Photo Lightbox -->
+<div class="lightbox-overlay" id="lightbox">
+  <span class="lightbox-close" id="lightboxClose">&times;</span>
+  <img id="lightboxImg" src="" alt="">
+</div>
 
 <!-- ==================== About ==================== -->
 <section class="about-section" id="about">
@@ -503,19 +536,77 @@ window.addEventListener('scroll',()=>{
     const cy=flower.tipY;
     const r=14+flower.scale*8;
     const count=flower.petalCount;
+    const shape=flower.shape||0; // 0=elliptic, 1=round, 2=pointed, 3=double, 4=heart
 
     for(let i=0;i<count;i++){
       const angle=(i/count)*Math.PI*2+flower.angle;
       const dist=r*bloom*(.85+Math.sin(i*2.7)*.15);
       const px=cx+Math.cos(angle)*dist;
       const py=cy+Math.sin(angle)*dist*.7;
-      const petalR=r*.55*bloom;
 
-      ctx.beginPath();
-      ctx.ellipse(px,py,petalR,petalR*.5,angle,.3,Math.PI*2);
-      ctx.fillStyle=flower.color;
-      ctx.globalAlpha=.7+bloom*.3;
-      ctx.fill();
+      if(shape===1){
+        // Round petals
+        const petalR=r*.6*bloom;
+        ctx.beginPath();
+        ctx.arc(px,py,petalR,0,Math.PI*2);
+        ctx.fillStyle=flower.color;
+        ctx.globalAlpha=.72+bloom*.28;
+        ctx.fill();
+      }else if(shape===2){
+        // Pointed petals (thin, elongated)
+        const pw=r*.22*bloom, ph=r*.75*bloom;
+        ctx.save();
+        ctx.translate(px,py);
+        ctx.rotate(angle);
+        ctx.beginPath();
+        ctx.moveTo(0,-ph);
+        ctx.quadraticCurveTo(pw,-ph*.3,-pw*.3,ph*.6);
+        ctx.quadraticCurveTo(0,ph*.7,pw*.3,ph*.6);
+        ctx.quadraticCurveTo(-pw,-ph*.3,0,-ph);
+        ctx.fillStyle=flower.color;
+        ctx.globalAlpha=.75+bloom*.25;
+        ctx.fill();
+        ctx.restore();
+      }else if(shape===3){
+        // Double layer petals
+        const petalR=r*.48*bloom;
+        ctx.beginPath();
+        ctx.ellipse(px,py,petalR,petalR*.45,angle,.3,Math.PI*2);
+        ctx.fillStyle=flower.color;
+        ctx.globalAlpha=.6+bloom*.3;
+        ctx.fill();
+        // Inner layer offset
+        const innerR=petalR*.6;
+        const inX=px+Math.cos(angle)*innerR*.15;
+        const inY=py+Math.sin(angle)*innerR*.1;
+        ctx.beginPath();
+        ctx.ellipse(inX,inY,innerR,innerR*.4,angle,.5,Math.PI*2);
+        ctx.fillStyle=flower.innerColor;
+        ctx.globalAlpha=.75+bloom*.25;
+        ctx.fill();
+      }else if(shape===4){
+        // Heart-shaped petals
+        const petalR=r*.52*bloom;
+        ctx.save();
+        ctx.translate(px,py);
+        ctx.rotate(angle);
+        ctx.beginPath();
+        ctx.moveTo(0,petalR*.3);
+        ctx.bezierCurveTo(-petalR*.7,petalR*.3,-petalR*.6,-petalR*.4,0,-petalR*.6);
+        ctx.bezierCurveTo(petalR*.6,-petalR*.4,petalR*.7,petalR*.3,0,petalR*.3);
+        ctx.fillStyle=flower.color;
+        ctx.globalAlpha=.7+bloom*.3;
+        ctx.fill();
+        ctx.restore();
+      }else{
+        // Classic elliptic petals (shape 0, default)
+        const petalR=r*.55*bloom;
+        ctx.beginPath();
+        ctx.ellipse(px,py,petalR,petalR*.5,angle,.3,Math.PI*2);
+        ctx.fillStyle=flower.color;
+        ctx.globalAlpha=.7+bloom*.3;
+        ctx.fill();
+      }
     }
 
     // Inner circle
@@ -543,19 +634,62 @@ window.addEventListener('scroll',()=>{
     }
   }
 
+  // 36 flower types with diverse shapes
+  // shape: 0=elliptic, 1=round, 2=pointed, 3=double-layer, 4=heart
+  const flowerTypes=[
+    {petal:'#e8937a',center:'#f0d89c',cnt:7,shape:0},  // 1.珊瑚梦
+    {petal:'#e8b4b8',center:'#fff8dc',cnt:6,shape:1},  // 2.柔粉-圆瓣
+    {petal:'#f0d89c',center:'#fce4d6',cnt:8,shape:2},  // 3.金阳-尖瓣
+    {petal:'#dcd0e8',center:'#f5f0e8',cnt:5,shape:3},  // 4.薰衣草-双层
+    {petal:'#f4a89a',center:'#ffe8cc',cnt:7,shape:4},  // 5.蜜桃绯-心形
+    {petal:'#c9dde4',center:'#e8f0f4',cnt:6,shape:0},  // 6.天蓝
+    {petal:'#ff9f9f',center:'#fff3cd',cnt:8,shape:1},  // 7.珊瑚礁-圆瓣
+    {petal:'#b5d8c4',center:'#fefae0',cnt:5,shape:2},  // 8.薄荷绿-尖瓣
+    {petal:'#f5c6a0',center:'#ffeedd',cnt:7,shape:3},  // 9.杏色-双层
+    {petal:'#c9b8db',center:'#faf0e6',cnt:6,shape:4},  // 10.紫丁香-心形
+    {petal:'#ffb3b3',center:'#fff8dc',cnt:8,shape:0},  // 11.樱吹雪
+    {petal:'#a8d0e0',center:'#e8f0f4',cnt:5,shape:1},  // 12.海雾-圆瓣
+    {petal:'#f8c8d8',center:'#ffe8cc',cnt:7,shape:2},  // 13.蔷薇粉-尖瓣
+    {petal:'#ffe5a0',center:'#fce4d6',cnt:6,shape:3},  // 14.奶油黄-双层
+    {petal:'#d4c5e8',center:'#f5f0e8',cnt:8,shape:4},  // 15.紫藤-心形
+    {petal:'#f09b8c',center:'#fff3cd',cnt:5,shape:0},  // 16.陶土红
+    {petal:'#bcd4e6',center:'#faf0e6',cnt:7,shape:1},  // 17.长春花蓝-圆瓣
+    {petal:'#c8e6c9',center:'#fefae0',cnt:6,shape:2},  // 18.鼠尾草-尖瓣
+    {petal:'#ffcad4',center:'#fff8dc',cnt:8,shape:3},  // 19.芭蕾粉-双层
+    {petal:'#fde29a',center:'#fce4d6',cnt:5,shape:4},  // 20.万寿菊-心形
+    {petal:'#b8a9d4',center:'#f5f0e8',cnt:7,shape:0},  // 21.紫暮
+    {petal:'#e6867a',center:'#ffe8cc',cnt:6,shape:1},  // 22.胭脂红-圆瓣
+    {petal:'#add8e6',center:'#e8f0f4',cnt:8,shape:2},  // 23.婴儿蓝-尖瓣
+    {petal:'#f4c2c2',center:'#fff3cd',cnt:5,shape:3},  // 24.玫瑰露-双层
+    {petal:'#a8d8b9',center:'#fefae0',cnt:7,shape:4},  // 25.春风绿-心形
+    {petal:'#f8d5b0',center:'#ffeedd',cnt:6,shape:0},  // 26.蜜桃奶
+    {petal:'#d0e4f0',center:'#faf0e6',cnt:8,shape:1},  // 27.冰蓝-圆瓣
+    {petal:'#ff8fab',center:'#fff8dc',cnt:5,shape:2},  // 28.火烈鸟-尖瓣
+    {petal:'#cbb8e8',center:'#f5f0e8',cnt:7,shape:3},  // 29.紫水晶-双层
+    {petal:'#eec0c8',center:'#ffe8cc',cnt:6,shape:4},  // 30.复古玫瑰-心形
+    {petal:'#c5e0c0',center:'#fefae0',cnt:8,shape:0},  // 31.青瓷绿
+    {petal:'#fcd5b0',center:'#fff3cd',cnt:5,shape:1},  // 32.香槟金-圆瓣
+    {petal:'#e8d5f5',center:'#faf0e6',cnt:7,shape:2},  // 33.天芥紫-尖瓣
+    {petal:'#f9e076',center:'#fce4d6',cnt:6,shape:3},  // 34.向日葵-双层
+    {petal:'#b0d0b8',center:'#f5f0e8',cnt:8,shape:4},  // 35.尤加利-心形
+    {petal:'#f0d0d0',center:'#ffeedd',cnt:5,shape:0},  // 36.茶玫
+  ];
+
   canvas.addEventListener('click',(e)=>{
     const rect=canvas.getBoundingClientRect();
     const x=e.clientX-rect.left;
     const y=e.clientY-rect.top;
     if(y>canvas.height*0.9)return;
+    const type=flowerTypes[Math.floor(Math.random()*flowerTypes.length)];
     flowers.push({
       x,y,scale:.6+Math.random()*.8,
       stemHeight:60+Math.random()*100,
-      petalCount:5+Math.floor(Math.random()*4),
+      petalCount:type.cnt,
+      shape:type.shape,
       angle:Math.random()*Math.PI*2,
       growTime:0,
-      color:['#e8937a','#e8b4b8','#f0d89c','#dcd0e8','#f4a89a','#c9dde4'][Math.floor(Math.random()*6)],
-      innerColor:['#f0d89c','#fff8dc','#fce4d6','#f5f0e8','#ffe8cc','#e8f0f4'][Math.floor(Math.random()*6)]
+      color:type.petal,
+      innerColor:type.center
     });
     if(hint)hint.style.opacity='0';
   });
@@ -718,39 +852,43 @@ window.addEventListener('scroll',()=>{
   }
 
   function drawStar(s,bright,lit,time){
-    const twinkle=bright||lit?1:.4+.45*Math.sin(time*s.twinkleSpeed+s.phase);
-    const alphaBase=lit?.9:(bright?.8:.25);
+    const twinkle=bright||lit?1:.65+.35*Math.sin(time*s.twinkleSpeed+s.phase);
+    const alphaBase=lit?.9:(bright?.85:.95);
     const alpha=alphaBase*twinkle;
     const r=s.r*(lit?1.35:(bright?1.2:1));
 
-    // Glow — lit stars have colored glow
-    const glowR=r*(s.isVirgo?3.5:2);
+    // Glow — all stars have visible glow
+    const glowR=r*(s.isVirgo?4:2.5);
     const glow=ctx.createRadialGradient(s.x,s.y,0,s.x,s.y,glowR);
     if(lit){
       glow.addColorStop(0,`rgba(255,240,180,${alpha})`);
       glow.addColorStop(.3,`rgba(255,200,120,${alpha*.5})`);
       glow.addColorStop(.7,`rgba(255,150,80,${alpha*.12})`);
+    }else if(bright||s.isVirgo){
+      glow.addColorStop(0,`rgba(255,240,210,${alpha*.9})`);
+      glow.addColorStop(.3,`rgba(255,220,160,${alpha*.5})`);
+      glow.addColorStop(.6,`rgba(255,200,120,${alpha*.15})`);
     }else{
-      glow.addColorStop(0,`rgba(255,${s.isVirgo?'240':'245'},200,${alpha})`);
-      glow.addColorStop(.4,`rgba(255,220,150,${alpha*.3})`);
+      glow.addColorStop(0,`rgba(255,245,220,${alpha*.7})`);
+      glow.addColorStop(.4,`rgba(255,215,160,${alpha*.25})`);
     }
     glow.addColorStop(1,'rgba(255,200,100,0)');
     ctx.beginPath();ctx.arc(s.x,s.y,glowR,0,Math.PI*2);
     ctx.fillStyle=glow;ctx.fill();
 
-    // Core
+    // Core — always bright white center
     ctx.beginPath();ctx.arc(s.x,s.y,r,0,Math.PI*2);
     ctx.fillStyle=lit
       ?`rgba(255,255,240,${Math.min(twinkle*1.2,1)})`
-      :`rgba(255,255,255,${alphaBase*(bright?1:.5)*twinkle})`;
+      :`rgba(255,255,255,${alphaBase*(bright||s.isVirgo?1:.7)*twinkle})`;
     ctx.fill();
 
-    // Cross sparkle
-    if((bright||lit)&&s.isVirgo){
-      const sparkleAlpha=lit?.5:.35;
+    // Cross sparkle — visible on all Virgo stars (even unlit)
+    if(s.isVirgo){
+      const sparkleAlpha=lit?.5:(bright?.45:.3);
       ctx.strokeStyle=`rgba(255,255,255,${sparkleAlpha*alpha})`;
-      ctx.lineWidth=lit?.8:.5;
-      const cr=r*(lit?3.2:2.6);
+      ctx.lineWidth=lit?.8:(bright?.6:.4);
+      const cr=r*(lit?3.2:(bright?2.8:2.4));
       ctx.beginPath();
       ctx.moveTo(s.x-cr,s.y);ctx.lineTo(s.x+cr,s.y);
       ctx.moveTo(s.x,s.y-cr);ctx.lineTo(s.x,s.y+cr);
@@ -835,10 +973,10 @@ window.addEventListener('scroll',()=>{
     stars.forEach(s=>{
       if(s.isVirgo)return;
       const alpha=1-ease*.8;
-      const twinkle=.3+.25*Math.sin(animTime*s.twinkleSpeed+s.phase);
+      const twinkle=.5+.5*Math.sin(animTime*s.twinkleSpeed+s.phase);
       ctx.beginPath();
       ctx.arc(s.x,s.y,s.r,0,Math.PI*2);
-      ctx.fillStyle=`rgba(255,255,255,${twinkle*alpha})`;
+      ctx.fillStyle=`rgba(255,255,255,${twinkle*alpha*.85})`;
       ctx.fill();
     });
 
@@ -945,6 +1083,40 @@ window.addEventListener('scroll',()=>{
   });
   navLinks.forEach(a=>a.classList.toggle('active',a.getAttribute('href')===current));
 },{passive:true});
+
+// ===== Photo Lightbox =====
+(function(){
+  const overlay=document.getElementById('lightbox');
+  const img=document.getElementById('lightboxImg');
+  const close=document.getElementById('lightboxClose');
+  const polaroids=document.querySelectorAll('.polaroid');
+
+  function open(src,alt){
+    img.src=src;
+    img.alt=alt||'';
+    overlay.classList.add('active');
+    document.body.style.overflow='hidden';
+  }
+  function closeFn(){
+    overlay.classList.remove('active');
+    document.body.style.overflow='';
+  }
+
+  polaroids.forEach(p=>{
+    p.addEventListener('click',(e)=>{
+      const el=p.querySelector('img');
+      if(el)open(el.src,el.alt);
+    });
+  });
+
+  overlay.addEventListener('click',(e)=>{
+    if(e.target===overlay||e.target===close)closeFn();
+  });
+  document.addEventListener('keydown',(e)=>{
+    if(e.key==='Escape')closeFn();
+  });
+})();
+
 </script>
 
 </body>
