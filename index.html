@@ -1,0 +1,951 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>KK映画 · 触得到的风景</title>
+<meta name="description" content="一场可以触摸的自然叙事体验，在指尖感受风景的诗意。">
+<style>
+/* ===== Reset & Fonts ===== */
+@import url('https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@300;400;500;600;700&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;1,9..40,400&display=swap');
+
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{
+  font-family:'DM Sans',-apple-system,sans-serif;
+  background:#faf7f2;color:#3d3d3d;overflow-x:hidden;
+  -webkit-tap-highlight-color:transparent;
+}
+img{display:block;width:100%}
+
+/* ===== Shared ===== */
+.serif{font-family:'Noto Serif SC',serif}
+.section-pad{padding:8rem 2rem;max-width:1100px;margin:0 auto}
+.section-label{
+  font-size:.7rem;font-weight:500;color:#c4a97d;
+  text-transform:uppercase;letter-spacing:.18em;margin-bottom:1rem;
+}
+.section-title{
+  font-family:'Noto Serif SC',serif;
+  font-size:clamp(2rem,4vw,3.2rem);font-weight:500;
+  color:#3a3a3a;line-height:1.3;letter-spacing:.02em;margin-bottom:.75rem;
+}
+.section-desc{
+  font-size:1rem;color:#8c8c8c;max-width:420px;line-height:1.7;
+}
+
+/* ===== Navigation ===== */
+.nav{
+  position:fixed;top:0;left:0;right:0;z-index:100;
+  padding:1.5rem 2.5rem;
+  transition:all .5s ease;
+}
+.nav.scrolled{
+  padding:.7rem 2.5rem;
+  background:rgba(250,247,242,.92);
+  backdrop-filter:blur(16px);
+  -webkit-backdrop-filter:blur(16px);
+  border-bottom:1px solid rgba(0,0,0,.04);
+}
+.nav-inner{
+  max-width:1100px;margin:0 auto;
+  display:flex;align-items:center;justify-content:space-between;
+}
+.nav-logo{
+  font-family:'Noto Serif SC',serif;
+  font-size:1.3rem;font-weight:600;color:#3d3d3d;
+  text-decoration:none;letter-spacing:.03em;
+}
+.nav-links{display:flex;gap:2rem;align-items:center}
+.nav-links a{
+  font-size:.78rem;font-weight:400;color:#8c8c8c;
+  text-decoration:none;letter-spacing:.04em;
+  transition:color .3s;position:relative;
+}
+.nav-links a::after{
+  content:'';position:absolute;bottom:-4px;left:0;
+  width:0;height:1px;
+  background:#e8937a;
+  transition:width .35s ease;
+}
+.nav-links a:hover,.nav-links a.active{color:#c4a97d}
+.nav-links a:hover::after,.nav-links a.active::after{width:100%}
+
+/* ===== Hero ===== */
+.hero{
+  position:relative;min-height:100vh;
+  display:flex;align-items:center;justify-content:center;
+  overflow:hidden;
+}
+.hero-bg{
+  position:absolute;inset:0;z-index:0;
+  background:linear-gradient(160deg,#f2d5d8 0%,#f7e8c4 30%,#c9dde4 60%,#dcd0e8 100%);
+}
+.hero-bg::after{
+  content:'';position:absolute;inset:0;
+  background:
+    radial-gradient(ellipse 80% 60% at 20% 40%,rgba(255,255,255,.5) 0%,transparent 60%),
+    radial-gradient(ellipse 60% 50% at 75% 30%,rgba(232,180,184,.3) 0%,transparent 60%),
+    radial-gradient(ellipse 70% 40% at 50% 75%,rgba(200,180,220,.25) 0%,transparent 50%);
+}
+.hero-petals{position:absolute;inset:0;z-index:1;pointer-events:none}
+.petal{
+  position:absolute;width:24px;height:24px;
+  background:radial-gradient(ellipse at 30% 30%,rgba(232,147,122,.35),rgba(232,180,184,.1));
+  border-radius:50% 0 50% 0;
+  animation:floatPetal linear infinite;
+}
+@keyframes floatPetal{
+  0%{transform:translate(0,0) rotate(0deg) scale(1);opacity:0}
+  10%{opacity:.8}
+  90%{opacity:.4}
+  100%{transform:translate(var(--tx),var(--ty)) rotate(var(--tr)) scale(.4);opacity:0}
+}
+.hero-content{
+  position:relative;z-index:2;text-align:center;
+  padding:2rem;
+}
+.hero-chapter{
+  font-size:.7rem;font-weight:500;color:rgba(90,70,60,.6);
+  text-transform:uppercase;letter-spacing:.2em;margin-bottom:1.5rem;
+}
+.hero-title{
+  font-family:'Noto Serif SC',serif;
+  font-size:clamp(2.5rem,6vw,4.5rem);font-weight:300;
+  color:#4a3f38;line-height:1.35;letter-spacing:.04em;
+}
+.hero-title em{
+  font-style:normal;font-weight:600;color:#c4776a;
+  position:relative;
+}
+.hero-title em::after{
+  content:'';position:absolute;bottom:2px;left:-4px;right:-4px;
+  height:6px;background:rgba(232,147,122,.15);
+  z-index:-1;border-radius:2px;
+}
+.hero-hint{
+  margin-top:2.5rem;font-size:.78rem;color:rgba(90,70,60,.45);
+  letter-spacing:.06em;animation:breath 3s ease-in-out infinite;
+}
+@keyframes breath{0%,100%{opacity:.35}50%{opacity:.7}}
+.hero-scroll-indicator{
+  position:absolute;bottom:2.5rem;left:50%;z-index:2;
+  width:20px;height:32px;border:1.5px solid rgba(90,70,60,.25);
+  border-radius:10px;transform:translateX(-50%);
+}
+.hero-scroll-indicator::after{
+  content:'';display:block;width:3px;height:8px;
+  background:rgba(90,70,60,.35);border-radius:2px;
+  margin:6px auto 0;
+  animation:scrollWheel 2s ease-in-out infinite;
+}
+@keyframes scrollWheel{
+  0%{transform:translateY(0);opacity:1}
+  100%{transform:translateY(8px);opacity:.2}
+}
+
+/* ===== Chapter Split Line ===== */
+.chapter-divider{
+  display:flex;align-items:center;justify-content:center;
+  padding:0 2rem;max-width:300px;margin:0 auto;
+}
+.chapter-divider::before,.chapter-divider::after{
+  content:'';flex:1;height:1px;
+  background:linear-gradient(to right,transparent,rgba(0,0,0,.1),transparent);
+}
+.chapter-dot{
+  width:6px;height:6px;background:#d4b896;border-radius:50%;
+  margin:0 1rem;opacity:.6;
+}
+
+/* ===== Bloom Garden Section ===== */
+#bloom-garden{position:relative;min-height:100vh}
+.garden-wrap{
+  position:relative;height:600px;background:#fcf9f3;
+  border-radius:16px;overflow:hidden;
+  box-shadow:0 2px 40px rgba(0,0,0,.03);
+  margin-top:2rem;
+}
+.garden-wrap canvas{
+  display:block;width:100%;height:100%;cursor:crosshair;
+}
+.garden-hint{
+  position:absolute;bottom:2rem;left:50%;transform:translateX(-50%);
+  font-size:.78rem;color:rgba(90,70,60,.45);letter-spacing:.06em;
+  pointer-events:none;
+  animation:breath 3s ease-in-out infinite;
+  white-space:nowrap;
+}
+
+/* ===== Constellation Section ===== */
+.constellation-wrap{
+  position:relative;height:550px;background:#f5f0e8;
+  border-radius:16px;overflow:hidden;
+  box-shadow:0 2px 40px rgba(0,0,0,.03);
+  margin-top:2rem;
+}
+.constellation-wrap canvas{
+  display:block;width:100%;height:100%;cursor:pointer;
+}
+.const-hint{
+  position:absolute;bottom:2rem;left:50%;transform:translateX(-50%);
+  font-size:.78rem;color:rgba(90,70,60,.45);letter-spacing:.06em;
+  pointer-events:none;
+  animation:breath 3s ease-in-out infinite;
+  white-space:nowrap;
+}
+
+/* ===== Polaroid Section ===== */
+.polaroid-grid{
+  display:grid;grid-template-columns:repeat(3,1fr);
+  gap:1.5rem;margin-top:2.5rem;
+}
+.polaroid{
+  position:relative;background:#fff;
+  padding:1rem 1rem 2.8rem;
+  box-shadow:0 4px 24px rgba(0,0,0,.06),0 1px 4px rgba(0,0,0,.04);
+  border-radius:3px;
+  transform:rotate(var(--rot,0deg));
+  transition:transform .6s cubic-bezier(.25,.1,.25,1.4),
+             box-shadow .6s ease;
+  cursor:pointer;user-select:none;
+}
+.polaroid:hover{
+  transform:rotate(0deg) translateY(-6px) scale(1.03);
+  box-shadow:0 16px 48px rgba(0,0,0,.1),0 2px 8px rgba(0,0,0,.05);
+  z-index:2;
+}
+.polaroid img{
+  width:100%;aspect-ratio:4/5;object-fit:cover;
+  border-radius:1px;pointer-events:none;
+  filter:brightness(.92) saturate(1.05);
+}
+.polaroid .p-date{
+  position:absolute;bottom:.8rem;right:1rem;
+  font-family:'DM Sans',sans-serif;
+  font-size:.6rem;color:#b0a89a;letter-spacing:.06em;
+}
+.polaroid .p-hand{
+  position:absolute;bottom:.6rem;left:1rem;
+  font-size:.65rem;color:#c4a97d;letter-spacing:.04em;
+}
+/* Reveal overlay — swipe to reveal the hidden color */
+.polaroid-reveal{
+  position:relative;margin-top:2.5rem;
+  max-width:500px;margin-left:auto;margin-right:auto;
+  height:340px;border-radius:12px;overflow:hidden;
+  background:#f0ebe0;
+  box-shadow:0 2px 24px rgba(0,0,0,.04);
+}
+.polaroid-reveal .reveal-hidden{
+  position:absolute;inset:0;z-index:1;
+  background:linear-gradient(135deg,#e8b4b8,#f0d89c,#a8c8d8);
+  display:flex;align-items:center;justify-content:center;
+}
+.polaroid-reveal .reveal-hidden span{
+  font-family:'Noto Serif SC',serif;
+  font-size:1.4rem;color:#fff;letter-spacing:.06em;
+  text-shadow:0 2px 12px rgba(0,0,0,.1);
+}
+.polaroid-reveal .reveal-mask{
+  position:absolute;inset:0;z-index:2;
+  background:#faf7f2;
+  transition:clip-path .7s cubic-bezier(.25,.1,.25,1);
+  clip-path:circle(0% at 50% 50%);
+  display:flex;align-items:center;justify-content:center;
+}
+.polaroid-reveal:hover .reveal-mask{
+  clip-path:circle(100% at var(--mx,50%) var(--my,50%));
+}
+.polaroid-reveal .reveal-mask span{
+  font-family:'Noto Serif SC',serif;
+  font-size:1rem;color:#8c8c8c;letter-spacing:.06em;
+  text-align:center;padding:2rem;line-height:1.7;
+}
+
+/* ===== About ===== */
+.about-section{
+  text-align:center;padding:10rem 2rem;
+  background:linear-gradient(to bottom,#faf7f2 0%,#f5efe2 100%);
+}
+.about-section .about-line{
+  width:40px;height:1px;background:#d4b896;
+  margin:0 auto 2rem;
+}
+.about-section p{
+  font-family:'Noto Serif SC',serif;
+  font-size:1.2rem;color:#6b5e53;line-height:2;
+  max-width:500px;margin:0 auto;
+  letter-spacing:.03em;
+}
+
+/* ===== Footer ===== */
+.footer{
+  text-align:center;padding:3rem 2rem;
+  color:#b0a89a;font-size:.72rem;letter-spacing:.06em;
+}
+.footer a{color:#c4a97d;text-decoration:none}
+
+/* ===== Responsive ===== */
+@media(max-width:768px){
+  .section-pad{padding:5rem 1.5rem}
+  .nav{padding:1rem 1.5rem}
+  .nav.scrolled{padding:.6rem 1.5rem}
+  .nav-links{display:none}
+  .garden-wrap{height:480px}
+  .constellation-wrap{height:440px}
+  .polaroid-grid{grid-template-columns:repeat(2,1fr);gap:1rem}
+  .polaroid{padding:.7rem .7rem 2.2rem}
+  .hero-title{font-size:clamp(2rem,7vw,3rem)}
+  .hero-scroll-indicator{bottom:1.5rem}
+}
+@media(max-width:480px){
+  .polaroid-grid{grid-template-columns:1fr 1fr;gap:.75rem}
+  .garden-wrap{height:400px}
+  .constellation-wrap{height:380px}
+  .polaroid-reveal{height:260px}
+}
+</style>
+</head>
+<body>
+
+<!-- Navigation -->
+<nav class="nav" id="nav">
+  <div class="nav-inner">
+    <a href="#" class="nav-logo">KK映画</a>
+    <div class="nav-links">
+      <a href="#garden" class="active">花开</a>
+      <a href="#constellation">处女座</a>
+      <a href="#polaroid">记忆</a>
+      <a href="#about">关于</a>
+    </div>
+  </div>
+</nav>
+
+<!-- ==================== Hero ==================== -->
+<section class="hero" id="home">
+  <div class="hero-bg"></div>
+  <div class="hero-petals" id="heroPetals"></div>
+  <div class="hero-content">
+    <p class="hero-chapter">chapter one</p>
+    <h1 class="hero-title">
+      有些风景，<br>要<em>触碰</em>才能看见
+    </h1>
+    <p class="hero-hint">向下滚动，开始探索</p>
+  </div>
+  <div class="hero-scroll-indicator"></div>
+</section>
+
+<div class="chapter-divider"><div class="chapter-dot"></div></div>
+
+<!-- ==================== Bloom Garden ==================== -->
+<section class="section-pad" id="garden">
+  <p class="section-label">Bloom Garden</p>
+  <h2 class="section-title">指尖生花</h2>
+  <p class="section-desc">在画布上轻轻点击，让花朵从你的指尖绽放。每一次触碰，都会种下一朵独一无二的花。</p>
+  <div class="garden-wrap" id="gardenWrap">
+    <canvas id="gardenCanvas"></canvas>
+    <p class="garden-hint">✨ 点击任意位置，种下一朵花</p>
+  </div>
+</section>
+
+<div class="chapter-divider"><div class="chapter-dot"></div></div>
+
+<!-- ==================== Constellation ==================== -->
+<section class="section-pad" id="constellation">
+  <p class="section-label">Starlight</p>
+  <h2 class="section-title">处女座</h2>
+  <p class="section-desc">Virgo，黄道十二宫的第六宫。她是手持麦穗的正义女神，在夜空中静静守望。</p>
+  <div class="constellation-wrap" id="constWrap">
+    <canvas id="constCanvas"></canvas>
+    <p class="const-hint" id="constHint">✨ 滑动鼠标，探索星空</p>
+  </div>
+</section>
+
+<div class="chapter-divider"><div class="chapter-dot"></div></div>
+
+<!-- ==================== Polaroid Memories ==================== -->
+<section class="section-pad" id="polaroid">
+  <p class="section-label">Memories</p>
+  <h2 class="section-title">触碰记忆</h2>
+  <p class="section-desc">每一张拍立得都藏着一段风景。触碰它们，让记忆苏醒。</p>
+  <div class="polaroid-grid">
+    <div class="polaroid" style="--rot:-4deg">
+      <img src="https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=600&q=85" alt="雪峰" loading="lazy">
+      <span class="p-hand">雪域圣境</span>
+      <span class="p-date">2020·冬</span>
+    </div>
+    <div class="polaroid" style="--rot:2deg">
+      <img src="https://images.unsplash.com/photo-1540206395-68808572332f?w=600&q=85" alt="花海" loading="lazy">
+      <span class="p-hand">紫色梦境</span>
+      <span class="p-date">2021·夏</span>
+    </div>
+    <div class="polaroid" style="--rot:-2deg">
+      <img src="https://images.unsplash.com/photo-1470071459604-3b5ec3a7fe05?w=600&q=85" alt="云雾" loading="lazy">
+      <span class="p-hand">云上仙境</span>
+      <span class="p-date">2022·秋</span>
+    </div>
+    <div class="polaroid" style="--rot:3deg">
+      <img src="https://images.unsplash.com/photo-1469474968028-56623f02e42e?w=600&q=85" alt="森林" loading="lazy">
+      <span class="p-hand">绿光森林</span>
+      <span class="p-date">2021·春</span>
+    </div>
+    <div class="polaroid" style="--rot:-1.5deg">
+      <img src="https://images.unsplash.com/photo-1493246507139-91e8fad9978e?w=600&q=85" alt="日落" loading="lazy">
+      <span class="p-hand">金色余晖</span>
+      <span class="p-date">2023·秋</span>
+    </div>
+  </div>
+  <div class="polaroid-reveal" id="polaroidReveal">
+    <div class="reveal-hidden"><span>把鼠标移过来</span></div>
+    <div class="reveal-mask">
+      <span>每一次触碰，都是一次新的发现。正如旅途中的惊喜，往往藏在最不经意的地方。</span>
+    </div>
+  </div>
+</section>
+
+<!-- ==================== About ==================== -->
+<section class="about-section" id="about">
+  <div class="about-line"></div>
+  <p>
+    KK映画是一封写给自然的情书。<br>
+    我们用像素捕捉光影，用代码编织交互。<br>
+    希望你在每一次点击、触碰中，<br>
+    都能感受到世界细微的美好。
+  </p>
+</section>
+
+<div class="footer">
+  <p>KK映画 &copy; 2026 · 图片来自 <a href="https://unsplash.com" target="_blank" rel="noopener">Unsplash</a></p>
+</div>
+
+<script>
+// ===== Navigation =====
+const nav=document.getElementById('nav');
+window.addEventListener('scroll',()=>{
+  nav.classList.toggle('scrolled',window.scrollY>50);
+},{passive:true});
+
+// ===== Floating Petals =====
+(function(){
+  const container=document.getElementById('heroPetals');
+  const colors=['rgba(232,147,122,.28)','rgba(232,180,184,.22)','rgba(240,216,156,.25)','rgba(200,180,220,.2)'];
+  function spawnPetal(){
+    const p=document.createElement('div');
+    p.className='petal';
+    const s=12+Math.random()*20;
+    p.style.width=s+'px';p.style.height=s+'px';
+    p.style.left=Math.random()*100+'%';
+    p.style.top=-30+'px';
+    p.style.setProperty('--tx',(Math.random()-.5)*300+'px');
+    p.style.setProperty('--ty',window.innerHeight+50+'px');
+    p.style.setProperty('--tr',(Math.random()-1)*360+'deg');
+    p.style.animationDuration=(8+Math.random()*14)+'s';
+    p.style.animationDelay='0s';
+    p.style.background='radial-gradient(ellipse at 30% 30%,'+colors[Math.floor(Math.random()*4)]+',transparent)';
+    container.appendChild(p);
+    setTimeout(()=>p.remove(),22000);
+  }
+  for(let i=0;i<8;i++)setTimeout(spawnPetal,i*1200);
+  setInterval(spawnPetal,2200);
+})();
+
+// ===== Bloom Garden — Canvas =====
+(function(){
+  const canvas=document.getElementById('gardenCanvas');
+  const ctx=canvas.getContext('2d');
+  const wrap=document.getElementById('gardenWrap');
+  const hint=wrap.querySelector('.garden-hint');
+  let flowers=[];
+
+  function resize(){
+    const rect=wrap.getBoundingClientRect();
+    canvas.width=rect.width;
+    canvas.height=rect.height;
+  }
+  resize();
+  window.addEventListener('resize',resize);
+
+  function drawGround(){
+    const grad=ctx.createLinearGradient(0,canvas.height*0.75,0,canvas.height);
+    grad.addColorStop(0,'rgba(212,190,155,0)');
+    grad.addColorStop(.5,'rgba(212,190,155,.08)');
+    grad.addColorStop(1,'rgba(180,160,135,.15)');
+    ctx.fillStyle=grad;
+    ctx.fillRect(0,canvas.height*0.75,canvas.width,canvas.height*0.25);
+  }
+
+  function drawStem(flower,progress){
+    const p=Math.min(progress,1);
+    const h=flower.stemHeight*p;
+    const sway=Math.sin(flower.growTime*0.03+flower.x*0.01)*3*p;
+    ctx.beginPath();
+    ctx.moveTo(flower.x,flower.y);
+    const cp1x=flower.x+sway*.3;
+    const cp1y=flower.y-h*.4;
+    const cp2x=flower.x+sway*.6;
+    const cp2y=flower.y-h*.75;
+    const endX=flower.x+sway;
+    const endY=flower.y-h;
+    ctx.bezierCurveTo(cp1x,cp1y,cp2x,cp2y,endX,endY);
+    ctx.strokeStyle='rgba(120,150,100,.45)';
+    ctx.lineWidth=1.8+flower.scale*.8;
+    ctx.lineCap='round';
+    ctx.stroke();
+    flower.tipX=endX;
+    flower.tipY=endY;
+  }
+
+  function drawPetals(flower,progress){
+    if(progress<=1)return;
+    const bloom=Math.min(progress-1,1);
+    const cx=flower.tipX;
+    const cy=flower.tipY;
+    const r=14+flower.scale*8;
+    const count=flower.petalCount;
+
+    for(let i=0;i<count;i++){
+      const angle=(i/count)*Math.PI*2+flower.angle;
+      const dist=r*bloom*(.85+Math.sin(i*2.7)*.15);
+      const px=cx+Math.cos(angle)*dist;
+      const py=cy+Math.sin(angle)*dist*.7;
+      const petalR=r*.55*bloom;
+
+      ctx.beginPath();
+      ctx.ellipse(px,py,petalR,petalR*.5,angle,.3,Math.PI*2);
+      ctx.fillStyle=flower.color;
+      ctx.globalAlpha=.7+bloom*.3;
+      ctx.fill();
+    }
+
+    // Inner circle
+    ctx.beginPath();
+    ctx.arc(cx,cy,r*.28*bloom,0,Math.PI*2);
+    ctx.globalAlpha=.9;
+    ctx.fillStyle=flower.innerColor;
+    ctx.fill();
+    ctx.globalAlpha=1;
+  }
+
+  function drawSparkle(flower){
+    const cx=flower.tipX;
+    const cy=flower.tipY;
+    const alpha=.2+Math.sin(flower.growTime*0.08)*.15;
+    for(let i=0;i<3;i++){
+      const a=(flower.growTime*0.02+i*2.1)%(Math.PI*2);
+      const d=8+Math.sin(a*3)*3;
+      const sx=cx+Math.cos(a)*d;
+      const sy=cy+Math.sin(a)*d;
+      ctx.beginPath();
+      ctx.arc(sx,sy,1.2,0,Math.PI*2);
+      ctx.fillStyle=`rgba(255,240,200,${alpha})`;
+      ctx.fill();
+    }
+  }
+
+  canvas.addEventListener('click',(e)=>{
+    const rect=canvas.getBoundingClientRect();
+    const x=e.clientX-rect.left;
+    const y=e.clientY-rect.top;
+    if(y>canvas.height*0.9)return;
+    flowers.push({
+      x,y,scale:.6+Math.random()*.8,
+      stemHeight:60+Math.random()*100,
+      petalCount:5+Math.floor(Math.random()*4),
+      angle:Math.random()*Math.PI*2,
+      growTime:0,
+      color:['#e8937a','#e8b4b8','#f0d89c','#dcd0e8','#f4a89a','#c9dde4'][Math.floor(Math.random()*6)],
+      innerColor:['#f0d89c','#fff8dc','#fce4d6','#f5f0e8','#ffe8cc','#e8f0f4'][Math.floor(Math.random()*6)]
+    });
+    if(hint)hint.style.opacity='0';
+  });
+
+  function animate(){
+    ctx.clearRect(0,0,canvas.width,canvas.height);
+    drawGround();
+    flowers.forEach(f=>{
+      f.growTime+=1.6;
+      const phase=f.growTime/40; // 0→1 stem, 1→2 bloom
+      drawStem(f,phase);
+      drawPetals(f,phase);
+      if(phase>1.8)drawSparkle(f);
+    });
+    requestAnimationFrame(animate);
+  }
+  animate();
+})();
+
+// ===== Constellation — Virgo (处女座) =====
+(function(){
+  const canvas=document.getElementById('constCanvas');
+  const ctx=canvas.getContext('2d');
+  const wrap=document.getElementById('constWrap');
+  const hint=document.getElementById('constHint');
+
+  function resize(){
+    const rect=wrap.getBoundingClientRect();
+    canvas.width=rect.width;
+    canvas.height=rect.height;
+  }
+  resize();
+  window.addEventListener('resize',()=>{resize();generateStars();});
+
+  // Virgo constellation star positions (relative to center)
+  const VIRGO_COUNT=8;
+  const virgoStars=[
+    {name:'Spica (角宿一)',     greek:'α', relX:  -5, relY: 110, r:3.8, mag:0.98},
+    {name:'Porrima (东次相)',   greek:'γ', relX: -25, relY: -20, r:2.8, mag:2.74},
+    {name:'Vindemiatrix (东次将)', greek:'ε', relX:  85, relY:-120, r:2.8, mag:2.83},
+    {name:'Auva (东上相)',      greek:'δ', relX:  65, relY: -55, r:2.4, mag:3.40},
+    {name:'Heze (角宿二)',      greek:'ζ', relX:  70, relY:  50, r:2.2, mag:3.37},
+    {name:'Zaniah (左执法)',    greek:'η', relX: -85, relY: -60, r:2.2, mag:3.89},
+    {name:'Zavijava (右执法)',  greek:'β', relX:-145, relY: -30, r:2.4, mag:3.61},
+    {name:'Syrma (亢宿二)',     greek:'ι', relX:  35, relY: 145, r:2.0, mag:4.08},
+  ];
+
+  // Virgo constellation lines
+  const virgoEdges=[
+    [0,1],[1,3],[3,2], // Spica→γ→δ→ε
+    [1,5],[5,6],       // γ→η→β
+    [0,4],             // Spica→ζ
+    [0,7],             // Spica→ι
+  ];
+
+  let stars=[];
+  let nightStars=[]; // background stars for the dark sky reveal
+  let hoveredStar=null;
+  let litMask=new Array(VIRGO_COUNT).fill(false); // which Virgo stars are lit
+  let litCount=0;
+  let completionProgress=0; // 0→1 when all stars lit
+  let allLit=false; // trigger flag
+  let revealStarted=false;
+
+  function generateStars(){
+    const W=canvas.width,H=canvas.height;
+    const cx=W/2,cy=H/2;
+    const margin=40;
+    stars=[];
+
+    // Random field stars (visible before reveal)
+    for(let i=0;i<60;i++){
+      stars.push({
+        x:margin+Math.random()*(W-margin*2),
+        y:margin+Math.random()*(H-margin*2),
+        r:.5+Math.random()*1.4,
+        isVirgo:false,idx:-1,
+        phase:Math.random()*Math.PI*2,
+        twinkleSpeed:.01+Math.random()*.02
+      });
+    }
+
+    // Virgo main stars
+    virgoStars.forEach((vs,i)=>{
+      stars.push({
+        x:cx+vs.relX,
+        y:cy+vs.relY,
+        r:vs.r,
+        isVirgo:true,idx:i,
+        name:vs.name,greek:vs.greek,mag:vs.mag,
+        phase:Math.random()*Math.PI*2,
+        twinkleSpeed:.03+Math.random()*.01
+      });
+    });
+
+    // Generate night sky background stars
+    nightStars=[];
+    for(let i=0;i<300;i++){
+      nightStars.push({
+        x:Math.random()*W,
+        y:Math.random()*H,
+        r:.3+Math.random()*2,
+        phase:Math.random()*Math.PI*2,
+        speed:.005+Math.random()*.03
+      });
+    }
+  }
+  generateStars();
+
+  let mouseX=-100,mouseY=-100;
+  let animTime=0;
+
+  // Click to light up stars
+  canvas.addEventListener('click',(e)=>{
+    const rect=canvas.getBoundingClientRect();
+    const mx=e.clientX-rect.left;
+    const my=e.clientY-rect.top;
+    let closest=null,minDist=30;
+    for(let i=0;i<stars.length;i++){
+      const s=stars[i];
+      if(!s.isVirgo)continue;
+      const d=Math.hypot(s.x-mx,s.y-my);
+      if(d<minDist){minDist=d;closest=s;}
+    }
+    if(closest&&!litMask[closest.idx]){
+      litMask[closest.idx]=true;
+      litCount++;
+      if(hint)hint.textContent='✨ 已点亮 '+litCount+'/'+VIRGO_COUNT+' 颗星';
+      if(litCount===VIRGO_COUNT){
+        allLit=true;
+        if(hint)hint.textContent='🌟 处女座完整显现！';
+      }
+    }
+  });
+
+  canvas.addEventListener('mousemove',(e)=>{
+    const rect=canvas.getBoundingClientRect();
+    mouseX=e.clientX-rect.left;
+    mouseY=e.clientY-rect.top;
+    let closest=null,minDist=22;
+    for(let i=0;i<stars.length;i++){
+      const s=stars[i];
+      if(!s.isVirgo)continue;
+      const d=Math.hypot(s.x-mouseX,s.y-mouseY);
+      if(d<minDist){minDist=d;closest=s;}
+    }
+    hoveredStar=closest;
+    canvas.style.cursor=(closest&&!litMask[closest.idx])?'pointer':'default';
+    if(hint&&closest&&!litMask[closest.idx])hint.textContent='🔭 点击点亮 '+closest.name;
+    else if(hint&&closest&&litMask[closest.idx])hint.textContent='✨ '+closest.name+' 已点亮';
+    else if(hint&&allLit)hint.textContent='🌟 处女座完整显现！';
+    else if(hint)hint.textContent='✨ 点击星星，逐一点亮';
+  });
+
+  function lerpColor(c1,c2,t){
+    const r=Math.round(c1[0]+(c2[0]-c1[0])*t);
+    const g=Math.round(c1[1]+(c2[1]-c1[1])*t);
+    const b=Math.round(c1[2]+(c2[2]-c1[2])*t);
+    return `rgb(${r},${g},${b})`;
+  }
+
+  function drawStar(s,bright,lit,time){
+    const twinkle=bright||lit?1:.4+.45*Math.sin(time*s.twinkleSpeed+s.phase);
+    const alphaBase=lit?.9:(bright?.8:.25);
+    const alpha=alphaBase*twinkle;
+    const r=s.r*(lit?1.35:(bright?1.2:1));
+
+    // Glow — lit stars have colored glow
+    const glowR=r*(s.isVirgo?3.5:2);
+    const glow=ctx.createRadialGradient(s.x,s.y,0,s.x,s.y,glowR);
+    if(lit){
+      glow.addColorStop(0,`rgba(255,240,180,${alpha})`);
+      glow.addColorStop(.3,`rgba(255,200,120,${alpha*.5})`);
+      glow.addColorStop(.7,`rgba(255,150,80,${alpha*.12})`);
+    }else{
+      glow.addColorStop(0,`rgba(255,${s.isVirgo?'240':'245'},200,${alpha})`);
+      glow.addColorStop(.4,`rgba(255,220,150,${alpha*.3})`);
+    }
+    glow.addColorStop(1,'rgba(255,200,100,0)');
+    ctx.beginPath();ctx.arc(s.x,s.y,glowR,0,Math.PI*2);
+    ctx.fillStyle=glow;ctx.fill();
+
+    // Core
+    ctx.beginPath();ctx.arc(s.x,s.y,r,0,Math.PI*2);
+    ctx.fillStyle=lit
+      ?`rgba(255,255,240,${Math.min(twinkle*1.2,1)})`
+      :`rgba(255,255,255,${alphaBase*(bright?1:.5)*twinkle})`;
+    ctx.fill();
+
+    // Cross sparkle
+    if((bright||lit)&&s.isVirgo){
+      const sparkleAlpha=lit?.5:.35;
+      ctx.strokeStyle=`rgba(255,255,255,${sparkleAlpha*alpha})`;
+      ctx.lineWidth=lit?.8:.5;
+      const cr=r*(lit?3.2:2.6);
+      ctx.beginPath();
+      ctx.moveTo(s.x-cr,s.y);ctx.lineTo(s.x+cr,s.y);
+      ctx.moveTo(s.x,s.y-cr);ctx.lineTo(s.x,s.y+cr);
+      ctx.stroke();
+    }
+  }
+
+  function drawConstellationLines(alpha){
+    virgoEdges.forEach(([a,b])=>{
+      const sa=stars.find(s=>s.isVirgo&&s.idx===a);
+      const sb=stars.find(s=>s.isVirgo&&s.idx===b);
+      if(!sa||!sb)return;
+      const bothLit=litMask[a]&&litMask[b];
+      const lineAlpha=bothLit?.4:.15;
+      const grad=ctx.createLinearGradient(sa.x,sa.y,sb.x,sb.y);
+      grad.addColorStop(0,`rgba(200,180,150,${lineAlpha*alpha})`);
+      grad.addColorStop(.5,`rgba(230,210,170,${lineAlpha*.7*alpha})`);
+      grad.addColorStop(1,`rgba(200,180,150,${lineAlpha*.6*alpha})`);
+      ctx.beginPath();
+      ctx.moveTo(sa.x,sa.y);
+      ctx.lineTo(sb.x,sb.y);
+      ctx.strokeStyle=grad;
+      ctx.lineWidth=bothLit?1.5:1;
+      ctx.lineCap='round';
+      ctx.stroke();
+    });
+  }
+
+  function animate(){
+    ctx.clearRect(0,0,canvas.width,canvas.height);
+    animTime+=0.016;
+
+    // Animate completion progress
+    if(allLit&&completionProgress<1){
+      if(!revealStarted){
+        revealStarted=true;
+      }
+      completionProgress=Math.min(completionProgress+.004,1);
+    }
+
+    const t=completionProgress;
+    const ease=t<.5?2*t*t:-1+(4-2*t)*t; // easeInOutQuad
+
+    // === Background: blend warm → dark starry sky ===
+    const topFrom=[247,242,232], topTo=[8,10,22];
+    const botFrom=[237,228,212], botTo=[10,16,32];
+    const topColor=lerpColor(topFrom,topTo,ease);
+    const botColor=lerpColor(botFrom,botTo,ease);
+    const bg=ctx.createLinearGradient(0,0,0,canvas.height);
+    bg.addColorStop(0,topColor);
+    bg.addColorStop(1,botColor);
+    ctx.fillStyle=bg;
+    ctx.fillRect(0,0,canvas.width,canvas.height);
+
+    // Night sky background stars (fade in with ease)
+    if(ease>0){
+      nightStars.forEach(ns=>{
+        const twinkle=.5+.5*Math.sin(animTime*ns.speed+ns.phase);
+        const alpha=ease*twinkle*(.4+ns.r/4*.6);
+        ctx.beginPath();
+        ctx.arc(ns.x,ns.y,ns.r,0,Math.PI*2);
+        ctx.fillStyle=`rgba(255,255,255,${alpha})`;
+        ctx.fill();
+      });
+
+      // Subtle nebula glow in the center
+      if(ease>.3){
+        const nebulaAlpha=(ease-.3)*.15;
+        const nGlow=ctx.createRadialGradient(canvas.width/2,canvas.height/2,0,canvas.width/2,canvas.height/2,canvas.width*.5);
+        nGlow.addColorStop(0,`rgba(30,20,60,${nebulaAlpha})`);
+        nGlow.addColorStop(.5,`rgba(20,15,40,${nebulaAlpha*.6})`);
+        nGlow.addColorStop(1,'rgba(10,5,20,0)');
+        ctx.fillStyle=nGlow;
+        ctx.fillRect(0,0,canvas.width,canvas.height);
+      }
+    }
+
+    // Draw constellation lines
+    drawConstellationLines(1-ease*.7);
+
+    // Draw field stars (fade out as night sky appears)
+    stars.forEach(s=>{
+      if(s.isVirgo)return;
+      const alpha=1-ease*.8;
+      const twinkle=.3+.25*Math.sin(animTime*s.twinkleSpeed+s.phase);
+      ctx.beginPath();
+      ctx.arc(s.x,s.y,s.r,0,Math.PI*2);
+      ctx.fillStyle=`rgba(255,255,255,${twinkle*alpha})`;
+      ctx.fill();
+    });
+
+    // Draw Virgo stars
+    stars.forEach(s=>{
+      if(!s.isVirgo)return;
+      const isHovered=hoveredStar===s;
+      const isLit=litMask[s.idx];
+      drawStar(s,isHovered&&!isLit,isLit,animTime);
+
+      // Additional pulse ring for lit stars when the sky darkens
+      if(isLit&&ease>.3){
+        const ringAlpha=(ease-.3)*.3;
+        const pulseR=s.r*3+Math.sin(animTime*2+s.idx)*2;
+        const ringGrad=ctx.createRadialGradient(s.x,s.y,pulseR*.6,s.x,s.y,pulseR);
+        ringGrad.addColorStop(0,`rgba(255,240,200,0)`);
+        ringGrad.addColorStop(.5,`rgba(255,220,160,${ringAlpha})`);
+        ringGrad.addColorStop(1,`rgba(255,200,100,0)`);
+        ctx.beginPath();
+        ctx.arc(s.x,s.y,pulseR,0,Math.PI*2);
+        ctx.fillStyle=ringGrad;
+        ctx.fill();
+      }
+    });
+
+    // Draw label tooltip on hover (if not lit)
+    if(hoveredStar&&!litMask[hoveredStar.idx]){
+      const s=hoveredStar;
+      const labelY=s.y-s.r-14;
+      ctx.font='12px "Noto Serif SC",serif';
+      const text=s.name;
+      const metrics=ctx.measureText(text);
+      const tw=metrics.width;
+      const th=20;
+      const pad=10;
+      ctx.fillStyle='rgba(60,50,40,.82)';
+      ctx.beginPath();
+      const rx=8;
+      const bx=s.x-tw/2-pad,by=labelY-th/2;
+      ctx.moveTo(bx+rx,by);
+      ctx.lineTo(bx+tw+pad*2-rx,by);
+      ctx.arcTo(bx+tw+pad*2,by,bx+tw+pad*2,by+rx,rx);
+      ctx.lineTo(bx+tw+pad*2,by+th-rx);
+      ctx.arcTo(bx+tw+pad*2,by+th,bx+tw+pad*2-rx,by+th,rx);
+      ctx.lineTo(bx+rx,by+th);
+      ctx.arcTo(bx,by+th,bx,by+th-rx,rx);
+      ctx.lineTo(bx,by+rx);
+      ctx.arcTo(bx,by,bx+rx,by,rx);
+      ctx.closePath();
+      ctx.fill();
+      ctx.fillStyle='#f5efe2';
+      ctx.textAlign='center';
+      ctx.textBaseline='middle';
+      ctx.fillText(text,s.x,labelY);
+    }
+
+    requestAnimationFrame(animate);
+  }
+  animate();
+})();
+
+// ===== Polaroid Reveal — mouse tracking =====
+(function(){
+  const reveal=document.getElementById('polaroidReveal');
+  const mask=reveal.querySelector('.reveal-mask');
+  reveal.addEventListener('mousemove',(e)=>{
+    const rect=reveal.getBoundingClientRect();
+    const x=((e.clientX-rect.left)/rect.width*100).toFixed(1);
+    const y=((e.clientY-rect.top)/rect.height*100).toFixed(1);
+    mask.style.setProperty('--mx',x+'%');
+    mask.style.setProperty('--my',y+'%');
+  });
+  reveal.addEventListener('mouseleave',()=>{
+    mask.style.setProperty('--mx','50%');
+    mask.style.setProperty('--my','50%');
+  });
+})();
+
+// ===== Scroll Reveal =====
+const revealEls=document.querySelectorAll('.section-pad,.about-section');
+const revealObs=new IntersectionObserver((entries)=>{
+  entries.forEach(entry=>{
+    if(entry.isIntersecting){
+      entry.target.style.opacity='1';
+      entry.target.style.transform='translateY(0)';
+    }
+  });
+},{threshold:.12,rootMargin:'0px 0px -30px 0px'});
+revealEls.forEach(el=>{
+  el.style.opacity='0';
+  el.style.transform='translateY(30px)';
+  el.style.transition='all 1s cubic-bezier(.25,.1,.25,1)';
+  revealObs.observe(el);
+});
+
+// ===== Nav link active state =====
+const navLinks=document.querySelectorAll('.nav-links a');
+const sections=['#garden','#constellation','#polaroid','#about'];
+window.addEventListener('scroll',()=>{
+  let current='';
+  sections.forEach(id=>{
+    const el=document.querySelector(id);
+    if(el&&el.getBoundingClientRect().top<window.innerHeight*.4)current=id;
+  });
+  navLinks.forEach(a=>a.classList.toggle('active',a.getAttribute('href')===current));
+},{passive:true});
+</script>
+
+</body>
+</html>
